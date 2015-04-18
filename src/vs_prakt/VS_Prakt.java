@@ -10,12 +10,17 @@ package vs_prakt;
  * @author markus
  */
 public class VS_Prakt {
-
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        // TODO code application logic here
+        final int count = 5;
+        Table table = new Table(count);
+        Philosopher phils[] = new Philosopher[count];
+        for (int i = 0; i < count; i++)
+        {
+            phils[i] = new Philosopher(i,table);
+        }
     }
     
 }
