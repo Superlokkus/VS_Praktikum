@@ -29,16 +29,19 @@ public class Philosopher extends Thread {
                 think();
                 synchronized (table) {
                     System.out.println(name + " will try to take fork " + name);
-                    while (!table.takeFork(name)) {
-                        System.out.println(name + " not able to take fork " + name);
-                        table.wait();
-                        System.out.println(name + " maybe now");
-                    }
-                    System.out.println(name + " will try to take fork " + (name + 1));
-                    while (!table.takeFork(name + 1)) {
-                        System.out.println(name + " not able to take fork " + (name + 1));
-                        table.wait();
-                        System.out.println(name + " maybe now");
+                    for (;true;table.wait()) {
+                        if (!table.takeFork(name))
+                        {
+                            System.out.println(name + " not able to take fork " + name);
+                            continue;
+                        }
+                        if (!table.takeFork(name + 1))
+                        {
+                            System.out.println(name + " not able to take fork " + (name + 1));
+                            table.putFork(name);
+                            continue;
+                        }
+                        break;
                     }
                 }
                 eat();
