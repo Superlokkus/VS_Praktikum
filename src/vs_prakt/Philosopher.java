@@ -6,66 +6,69 @@
 package vs_prakt;
 
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 
 /**
  *
  * @author markus
  */
-public class Philosopher extends Thread{
-    
-    public Philosopher(int name,Table table)
-    {
-        this.name = name; setName(String.valueOf(name));
+public class Philosopher extends Thread {
+
+    public Philosopher(int name, Table table) {
+        this.name = name;
+        setName(String.valueOf(name));
         this.table = table;
-        
+
         start();
     }
-    
+
     @Override
-    public void run() 
-    {
+    @SuppressWarnings({"empty-statement", "empty-statement"})
+    public void run() {
         while (true) {
             try {
                 think();
-            } catch (InterruptedException ex) {
-                break;
-            }
-            System.out.println(name + " will try to take fork " + name);
-            while (!table.takeFork(name));
-            System.out.println(name + " will try to take fork " + (name + 1));
-            while (!table.takeFork(name + 1));
-            try {
+                synchronized (table) {
+                    System.out.println(name + " will try to take fork " + name);
+                    while (!table.takeFork(name)) {
+                        System.out.println(name + " not able to take fork " + name);
+                        table.wait();
+                        System.out.println(name + " maybe now");
+                    }
+                    System.out.println(name + " will try to take fork " + (name + 1));
+                    while (!table.takeFork(name + 1)) {
+                        System.out.println(name + " not able to take fork " + (name + 1));
+                        table.wait();
+                        System.out.println(name + " maybe now");
+                    }
+                }
                 eat();
             } catch (InterruptedException ie) {
                 break;
-            } finally
-            {
-                System.out.println(name + " puts down fork " + name);
-                table.putFork(name);
-                System.out.println(name + " puts down fork " + (name + 1));
-                table.putFork(name + 1);
+            } finally {
+                synchronized (table) {
+                    System.out.println(name + " puts down fork " + name);
+                    table.putFork(name);
+                    System.out.println(name + " puts down fork " + (name + 1));
+                    table.putFork(name + 1);
+                    table.notifyAll();
+                }
             }
         }
-        
+
     }
-    
-    private void think() throws InterruptedException
-    {
-        int time = ThreadLocalRandom.current().nextInt(0,20000);
+
+    private void think() throws InterruptedException {
+        int time = ThreadLocalRandom.current().nextInt(0, 20000);
         System.out.println(name + " starts thinking for " + time + "ms");
         Thread.sleep(time);
     }
-    
-    private void eat() throws InterruptedException
-    {
-        int time = ThreadLocalRandom.current().nextInt(0,20000);
+
+    private void eat() throws InterruptedException {
+        int time = ThreadLocalRandom.current().nextInt(0, 20000);
         System.out.println(name + " starts eating for " + time + "ms");
         Thread.sleep(time);
     }
-    
+
     private Table table;
     final private int name;
 }
